@@ -1,0 +1,74 @@
+.section {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  background: #050505;
+  color: #ffffff;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+}
+
+.copy {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8vh 6vw 10vh;
+  pointer-events: none;
+}
+
+.eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.55em;
+  text-transform: uppercase;
+  color: #777;
+  font-weight: 500;
+  align-self: center;
+}
+
+.headline {
+  margin: 0;
+  align-self: center;
+  text-align: center;
+  font-size: clamp(1.75rem, 6.5vw, 6.5rem);
+  line-height: 0.9;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  will-change: transform, opacity;
+}
+
+.headline span {
+  display: block;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: #000000;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+  will-change: opacity;
+}
+
+@media (max-width: 768px) {
+  .copy {
+    padding: 8vh 6vw 8vh;
+  }
+}
