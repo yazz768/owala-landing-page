@@ -6,10 +6,12 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import styles from "./FinalCinematic.module.css";
 import { FINAL_CONFIG } from "@/lib/animations";
 import { prefersReducedMotion } from "@/lib/motion";
+import { useVideoAsset } from "@/components/AssetGate/AssetGate";
 
 if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger);
 
 export default function FinalCinematic() {
+  const videoSrc = useVideoAsset("video2");
   const sectionRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const headlineRef = useRef<HTMLDivElement | null>(null);
@@ -162,7 +164,7 @@ export default function FinalCinematic() {
       <video
         ref={videoRef}
         className={styles.video}
-        src="/videos/video3.mp4"
+        src={videoSrc}
         muted
         playsInline
         preload="metadata"

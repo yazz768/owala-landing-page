@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { Feature } from "@/lib/features";
 import styles from "./FeatureExperience.module.css";
+import { useVideoAsset } from "@/components/AssetGate/AssetGate";
 
 /** Pilih kelas frame unik per feature number. */
 function getFrameClass(stylesMap: Record<string, string>, number: string) {
@@ -21,6 +22,7 @@ function getFrameClass(stylesMap: Record<string, string>, number: string) {
 }
 
 export default function FeaturePanel({ feature }: { feature: Feature }) {
+  const videoSrc = useVideoAsset("video1");
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const frameClass = getFrameClass(
     styles as unknown as Record<string, string>,
@@ -80,7 +82,7 @@ export default function FeaturePanel({ feature }: { feature: Feature }) {
         <video
           ref={videoRef}
           className={styles.video}
-          src="/videos/video1.mp4"
+          src={videoSrc}
           muted
           playsInline
           preload="metadata"

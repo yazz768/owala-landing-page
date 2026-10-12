@@ -2,16 +2,13 @@
 
 import {
   forwardRef,
-  useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
 import styles from "./Hero.module.css";
-import {
-  createFrameSequence,
-  type FrameSequenceHandle,
-} from "./imageSequence";
+import type { FrameSequenceHandle } from "./imageSequence";
 
 export interface HeroImageSequenceHandle {
   setFrame: (index: number) => void;
@@ -20,31 +17,20 @@ export interface HeroImageSequenceHandle {
 }
 
 interface HeroImageSequenceProps {
-  basePath: string;
-  frameCount: number;
-  padding?: number;
-  extension?: string;
-  onProgress?: (loaded: number, total: number) => void;
-  onReady?: () => void;
+  sequence: FrameSequenceHandle;
 }
 
 const HeroImageSequence = forwardRef<
   HeroImageSequenceHandle,
   HeroImageSequenceProps
 >(function HeroImageSequence(
-  {
-    basePath,
-    frameCount,
-    padding = 5,
-    extension = "png",
-    onProgress,
-    onReady,
-  },
+  { sequence },
   ref
 ) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const seqRef = useRef<FrameSequenceHandle | null>(null);
+  const seqRef = useRef<FrameSequenceHandle | null>(sequence);
+  const frameCount = sequence.frames.length;
 
   const pendingFrameRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
@@ -53,16 +39,6 @@ const HeroImageSequence = forwardRef<
   const dprRef = useRef<number>(1);
 
   const [ready, setReady] = useState(false);
-
-  // keep latest callbacks without re-running the main effect
-  const progressRef = useRef(onProgress);
-  const readyRef = useRef(onReady);
-  useEffect(() => {
-    progressRef.current = onProgress;
-  }, [onProgress]);
-  useEffect(() => {
-    readyRef.current = onReady;
-  }, [onReady]);
 
   /** Draw an image into canvas with "contain" fit + DPR scaling. */
   const draw = (img: HTMLImageElement) => {
@@ -119,7 +95,6 @@ const HeroImageSequence = forwardRef<
   };
 
   /** Pending-frame scheduler: rAF coalesces rapid scroll updates. */
-  /** Pending-frame scheduler: rAF coalesces rapid scroll updates. */
   const requestFrame = (index: number) => {
     pendingFrameRef.current = index;
     if (rafRef.current !== null) return;
@@ -154,30 +129,17 @@ const HeroImageSequence = forwardRef<
     [frameCount]
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     dprRef.current = Math.min(window.devicePixelRatio || 1, 2);
 
-    const seq = createFrameSequence({
-      basePath,
-      frameCount,
-      padding,
-      extension,
-    });
-    seqRef.current = seq;
-
-    seq.load(
-      (loaded, total) => progressRef.current?.(loaded, total),
-      () => {
-        setReady(true);
-        const first = seq.getFrame(0);
-        if (first) {
-          currentImageRef.current = first;
-          lastDrawnRef.current = 0;
-          draw(first);
-        }
-        readyRef.current?.();
-      }
-    );
+    seqRef.current = sequence;
+    setReady(true);
+    const first = sequence.getFrame(0);
+    if (first) {
+      currentImageRef.current = first;
+      lastDrawnRef.current = 0;
+      draw(first);
+    }
 
     const ro =
       typeof ResizeObserver !== "undefined"
@@ -203,11 +165,10 @@ const HeroImageSequence = forwardRef<
         window.cancelAnimationFrame(rafRef.current);
         rafRef.current = null;
       }
-      seq.destroy();
       seqRef.current = null;
       currentImageRef.current = null;
     };
-  }, [basePath, frameCount, padding, extension]);
+  }, [sequence]);
 
   return (
     <div

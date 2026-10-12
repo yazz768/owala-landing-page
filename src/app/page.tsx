@@ -7,10 +7,11 @@ import FinalStatement from "@/components/FinalStatement/FinalStatement";
 import BuySection from "@/components/BuySection/BuySection";
 import Footer from "@/components/Footer/Footer";
 import SmoothScroll from "@/components/SmoothScroll";
+import AssetGate from "@/components/AssetGate/AssetGate";
 
 export default function Home() {
   return (
-    <SmoothScroll>
+    <AssetGate><SmoothScroll>
       <Navigation />
       <main>
         <Hero />
@@ -21,6 +22,6 @@ export default function Home() {
         <BuySection />
       </main>
       <Footer />
-    </SmoothScroll>
+    </SmoothScroll></AssetGate>
   );
 }

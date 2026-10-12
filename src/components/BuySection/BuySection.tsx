@@ -8,10 +8,12 @@ import { PRODUCT, BUY_COPY } from "@/lib/config";
 import { prefersReducedMotion } from "@/lib/motion";
 import ProductDetailModal from "@/components/Modal/ProductDetailModal";
 import BuyModal from "@/components/Modal/BuyModal";
+import { useVideoAsset } from "@/components/AssetGate/AssetGate";
 
 if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger);
 
 export default function BuySection() {
+  const videoSrc = useVideoAsset("video1");
   const sectionRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -80,7 +82,7 @@ export default function BuySection() {
             <video
               ref={videoRef}
               className={styles.video}
-              src="/videos/video1.mp4"
+              src={videoSrc}
               muted
               playsInline
               preload="metadata"

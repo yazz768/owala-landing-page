@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import styles from "./Hero.module.css";
@@ -8,27 +8,23 @@ import { HERO_CONFIG } from "@/lib/animations";
 import HeroImageSequence, {
   type HeroImageSequenceHandle,
 } from "./HeroImageSequence";
+import { useAssets } from "@/components/AssetGate/AssetGate";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
 /** ── Image sequence configuration ────────────────────── */
-const FRAME_BASE_PATH = "/convertvideo1";
 const FRAME_COUNT = 240;
-const FRAME_PADDING = 5;
-const FRAME_EXTENSION = "png";
 /** ────────────────────────────────────────────────────── */
 
 export default function Hero() {
+  const { sequence } = useAssets();
   const sectionRef = useRef<HTMLElement | null>(null);
   const seqRef = useRef<HeroImageSequenceHandle | null>(null);
   const headlineRef = useRef<HTMLHeadingElement | null>(null);
   const scrollHintRef = useRef<HTMLDivElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
-
-  const [progress, setProgress] = useState(0);
-  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -48,21 +44,10 @@ export default function Hero() {
           duration: 1.4,
           ease: "expo.out",
           delay: 0.15,
+          immediateRender: false,
+          overwrite: "auto",
         }
       );
-    gsap.fromTo(
-      headline,
-      { yPercent: 30, opacity: 0 },
-      {
-        yPercent: 0,
-        opacity: 1,
-        duration: 1.4,
-        ease: "expo.out",
-        delay: 0.15,
-        immediateRender: false,
-        overwrite: "auto",
-      }
-    );
 
       // SCROLL-DRIVEN CINEMATIC (image sequence replaces video)
       const tl = gsap.timeline({
@@ -107,25 +92,8 @@ export default function Hero() {
     >
       <HeroImageSequence
         ref={seqRef}
-        basePath={FRAME_BASE_PATH}
-        frameCount={FRAME_COUNT}
-        padding={FRAME_PADDING}
-        extension={FRAME_EXTENSION}
-        onProgress={(loaded, total) => setProgress(loaded / total)}
-        onReady={() => setIsReady(true)}
+        sequence={sequence}
       />
-
-      {!isReady && (
-        <div className={styles.loading} aria-live="polite" aria-busy="true">
-          <span className={styles.loadingBrand}>Owala</span>
-          <span className={styles.loadingProgress}>
-            {Math.round(progress * 100)
-              .toString()
-              .padStart(3, "0")}
-            %
-          </span>
-        </div>
-      )}
 
       <div ref={overlayRef} className={styles.overlay} aria-hidden="true" />
 

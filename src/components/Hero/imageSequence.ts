@@ -16,7 +16,8 @@ export interface FrameSequenceHandle {
   readonly failedCount: number;
   load: (
     onProgress?: (loaded: number, total: number) => void,
-    onFirstFrame?: () => void
+    onFirstFrame?: () => void,
+    onComplete?: () => void
   ) => void;
   destroy: () => void;
   getFrame: (index: number) => HTMLImageElement | null;
@@ -45,10 +46,12 @@ export function createFrameSequence(
 
   let progressCb: ((loaded: number, total: number) => void) | null = null;
   let firstFrameCb: (() => void) | null = null;
+  let completeCb: (() => void) | null = null;
 
   const fireProgress = () => {
     if (destroyed) return;
     progressCb?.(loadedCount, frameCount);
+    if (loadedCount + failedCount === frameCount) completeCb?.();
     if (!firstFrameFired && frames[0] && frames[0].naturalWidth > 0) {
       firstFrameFired = true;
       firstFrameCb?.();
@@ -64,7 +67,9 @@ export function createFrameSequence(
 
       img.onload = async () => {
         try {
-          if (typeof img.decode === "function") {
+          // Only the opening frames need decoding before the page appears.
+          // Decoding all 240 at once can consume hundreds of MB of memory.
+          if (index < 8 && typeof img.decode === "function") {
             await img.decode().catch(() => undefined);
           }
         } catch {
@@ -92,10 +97,12 @@ export function createFrameSequence(
 
   const load = (
     onProgress?: (loaded: number, total: number) => void,
-    onFirstFrame?: () => void
+    onFirstFrame?: () => void,
+    onComplete?: () => void
   ) => {
     progressCb = onProgress ?? null;
     firstFrameCb = onFirstFrame ?? null;
+    completeCb = onComplete ?? null;
 
     // PHASE A — eager load (8 frame awal, parallel)
     const eager = Math.min(8, frameCount);
@@ -104,7 +111,7 @@ export function createFrameSequence(
 
     // PHASE B+C — sisa frame, batch + idle scheduling
     const startRest = () => {
-      const batchSize = 8;
+      const batchSize = 12;
       let i = eager;
       const pump = () => {
         if (destroyed || i >= frameCount) return;
@@ -112,21 +119,7 @@ export function createFrameSequence(
         for (let b = 0; b < batchSize && i < frameCount; b++, i++) {
           batch.push(loadOne(i));
         }
-        Promise.all(batch).then(() => {
-          if (destroyed) return;
-          type IdleWindow = Window & {
-            requestIdleCallback?: (
-              cb: () => void,
-              opts?: { timeout?: number }
-            ) => number;
-          };
-          const w = window as IdleWindow;
-          if (typeof w.requestIdleCallback === "function") {
-            w.requestIdleCallback(pump, { timeout: 200 });
-          } else {
-            window.setTimeout(pump, 16);
-          }
-        });
+        Promise.all(batch).then(pump);
       };
       pump();
     };
@@ -140,6 +133,7 @@ export function createFrameSequence(
     destroyed = true;
     progressCb = null;
     firstFrameCb = null;
+    completeCb = null;
     for (let i = 0; i < frames.length; i++) {
       const f = frames[i];
       if (f) {

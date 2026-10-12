@@ -4,12 +4,14 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import styles from "./BlackProductStory.module.css";
+import { useVideoAsset } from "@/components/AssetGate/AssetGate";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
 export default function BlackProductStory() {
+  const videoSrc = useVideoAsset("video2");
   const sectionRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -113,7 +115,7 @@ export default function BlackProductStory() {
           <video
             ref={videoRef}
             className={styles.video}
-            src="/videos/video2.mp4"
+            src={videoSrc}
             muted
             playsInline
             preload="metadata"
